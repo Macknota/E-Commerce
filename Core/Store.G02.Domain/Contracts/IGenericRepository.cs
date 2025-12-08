@@ -11,7 +11,10 @@ namespace Store.G02.Domain.Contracts
     {
         //??????
         Task<IEnumerable<TEntity>> GetAllAsync(bool changeTracker = false);
+        Task<IEnumerable<TEntity>> GetAllAsync(ISpecifications<TKey,TEntity> spec,bool changeTracker = false); // For Dynamic Query
         Task<TEntity?> GetAsync(TKey key);
+        Task<TEntity?> GetAsync(ISpecifications<TKey,TEntity> spec); // For Dynamic Query
+        Task<int> CountAsync(ISpecifications<TKey,TEntity> spec); // Calculate the count of products without the pagination
         Task AddAsync(TEntity entity);
         void Update(TEntity entity);
         void Delete(TEntity entity);

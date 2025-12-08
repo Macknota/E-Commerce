@@ -14,7 +14,14 @@ namespace Store.G02.Domain.Contracts
 
         Expression<Func<TEntity,bool>>? Criteria { get; set; }
         //Property For Filteration
+        
+        Expression<Func<TEntity,object>>? OrderBy { get; set; }
+        Expression<Func<TEntity,object>>? OrderByDescending { get; set; }
 
+         int Skip { get; set; } 
+        //signature of property remove public word ?!
+         int Take { get; set; }
+         bool IsPagination { get; set; }
 
     }
 }

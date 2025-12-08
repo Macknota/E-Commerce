@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Store.G02.Shared.Dtos.Products
+namespace Store.G02.Domain.Exceptions.BadRequest
 {
-    public class TypeResponse
+    public class BadRequestException(string message) : Exception(message)
     {
-        public string Name { get; set; }
+
     }
 }

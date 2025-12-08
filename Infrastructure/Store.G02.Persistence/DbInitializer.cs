@@ -1,7 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Store.G02.Domain.Contracts;
+using Store.G02.Domain.Entities.Identity;
+using Store.G02.Domain.Entities.Orders;
 using Store.G02.Domain.Entities.Products;
 using Store.G02.Persistence.Data.Contexts;
+using Store.G02.Persistence.Identity.Contexts;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,7 +17,12 @@ namespace Store.G02.Persistence
 {
 
     //CLR => Primary Constructor
-    public class DbInitializer(StoreDbContext _context) : IDbInitializer
+    public class DbInitializer(
+        StoreDbContext _context,
+        IdentityStoreDbContext _identityDbContext,
+        UserManager<AppUser> _userManager,
+        RoleManager<IdentityRole> _roleManager
+        ) : IDbInitializer
     {
 
         //Step 1 : To Do Any operation on Db U need object from the class that Represent Db
@@ -65,6 +74,31 @@ namespace Store.G02.Persistence
                 }
             }
 
+            if(!_context.DeliveryMethods.Any())
+            {
+
+                //DeliveryMethods
+
+
+                //1. Read All Data From Json File 'delivery.json'
+                //Store.G02\Infrastructure\Store.G02.Persistence\Data\DataSeeding\delivery.json
+                //Note That (../)
+
+                var deliveryData = await File.ReadAllTextAsync(@"..\Infrastructure\Store.G02.Persistence\Data\DataSeeding\delivery.json");
+
+                //2. Convert The JsonString To List<ProductBrand> 
+
+                var DeliveryMethods = JsonSerializer.Deserialize<List<DeliveryMethod>>(deliveryData);
+
+
+                //Add List To The Db
+                if (DeliveryMethods is not null && DeliveryMethods.Count > 0)
+                {
+                    await _context.DeliveryMethods.AddRangeAsync(DeliveryMethods);
+                }
+            }
+
+
 
             //ProductTypes
             if (!_context.ProductTypes.Any())
@@ -101,6 +135,57 @@ namespace Store.G02.Persistence
 
             }
             await _context.SaveChangesAsync();
+
+        }
+
+        public async Task InitializeIdentityAsync()
+        {
+            //Create Db =>
+            //Update Db =>
+
+            //If There is any migration not applied
+            if (_identityDbContext.Database.GetPendingMigrationsAsync().GetAwaiter().GetResult().Any())
+            {
+                await _identityDbContext.Database.MigrateAsync();
+            }
+
+            //Data Seed
+            if(!_identityDbContext.Roles.Any())
+            {
+                //Add Role
+                await _roleManager.CreateAsync(new IdentityRole() { Name = "SuperAdmin" });//???????
+                await _roleManager.CreateAsync(new IdentityRole() { Name = "Admin" });
+            }
+
+            if(!_identityDbContext.Users.Any())
+            {
+                //Add User
+                var superAdmin = new AppUser()
+                {
+                    UserName = "SuperAdmin",
+                    DisplayName = "SuperAdmin",
+                    Email = "SuperAdmin@gmail.com",
+                    PhoneNumber = "01233345555"
+                };
+                
+                var admin = new AppUser()
+                {
+                    UserName = "Admin",
+                    DisplayName = "Admin",
+                    Email = "Admin@gmail.com",
+                    PhoneNumber = "01233345555"
+                };
+
+                //Add 2 Users password
+                await _userManager.CreateAsync(superAdmin, "P@ssW0rd");
+                await _userManager.CreateAsync(admin, "P@ssW0rd");
+
+                //Assign Role
+                await _userManager.AddToRoleAsync(superAdmin, "SuperAdmin");
+                await _userManager.AddToRoleAsync(admin, "Admin");
+
+
+            }
         }
     }
 }
