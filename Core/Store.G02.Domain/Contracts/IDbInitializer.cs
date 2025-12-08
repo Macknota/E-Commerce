@@ -9,6 +9,7 @@ namespace Store.G02.Domain.Contracts
     public interface IDbInitializer
     {
         Task InitializeAsync(); //Work with Asyncorize way DataBase ??
+        Task InitializeIdentityAsync();
 
     }
 }

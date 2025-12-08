@@ -1,5 +1,7 @@
-﻿using Store.G02.Domain.Contracts;
+﻿using Microsoft.EntityFrameworkCore;
+using Store.G02.Domain.Contracts;
 using Store.G02.Domain.Entities;
+using Store.G02.Persistence.Data.Contexts;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,12 +12,57 @@ namespace Store.G02.Persistence
 {
     public static class SpecificationsEvaluator
     {
-        //return await _context.Products.Include(P => P.Brand).Include(P => P.Type).Where(P => P.Id == key as int?).FirstOrDefaultAsync() as TEntity;
+        // _context.Products.Include(P => P.Brand).Include(P => P.Type).Where(P => P.Id == key as int?).FirstOrDefaultAsync() as TEntity;
+        // Obj(StoreDbContext) + dbSet
 
-        //public static IQueryable<TEntity> GetQuery<Tkey,TEntity>(ISpecifications<Tkey,TEntity> spec) where TEntity : BaseEntity<Tkey>
-        //{
+
+        //Generate Dynamic Query
+        public static IQueryable<TEntity> GetQuery<Tkey, TEntity>(IQueryable<TEntity> inputQuery ,ISpecifications<Tkey, TEntity> spec) where TEntity : BaseEntity<Tkey>
+        {
+
+            var query = inputQuery; // _context.Products
             
-        //}
+            //Check Criteria To Filter 
+
+            if(spec.Criteria is not null)
+            {
+                query = query.Where(spec.Criteria); // _context.Products.Where(P => P.id == 12);
+            }
+
+
+            //sorting query
+            //Check Expression which To Order By With
+            if(spec.OrderBy is not null)
+            {
+                query = query.OrderBy(spec.OrderBy);
+            }
+            else if (spec.OrderByDescending is not null)
+            {
+                query = query.OrderByDescending(spec.OrderByDescending);
+            }
+
+
+
+            //Pagination After Filter and Sorting
+
+            if(spec.IsPagination)
+            {
+                query = query.Skip(spec.Skip).Take(spec.Take);  
+            }
+
+
+
+
+            //Check Include List
+
+            // _context.Products.Where(P => P.id == 12).Include(P => P.Brand)
+            // _context.Products.Where(P => P.id == 12).Include(P => P.Brand).Include(P => P.type)
+
+            query = spec.Includes.Aggregate(query, (query, includeExpression) => query.Include(includeExpression));
+
+            return query;
+
+        }
 
     }
 }

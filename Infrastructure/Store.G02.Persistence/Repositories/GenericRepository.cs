@@ -45,6 +45,7 @@ namespace Store.G02.Persistence.Repositories
             }
             return await _context.Set<TEntity>().FindAsync(key);
         }
+
         public async Task AddAsync(TEntity entity)
         {
            await _context.AddAsync(entity);
@@ -58,5 +59,28 @@ namespace Store.G02.Persistence.Repositories
             _context.Remove(entity);
         }
 
+        public async Task<IEnumerable<TEntity>> GetAllAsync(ISpecifications<TKey, TEntity> spec, bool changeTracker = false)
+        {
+            //Call The Static Function GetQuery
+            //return await SpecificationsEvaluator.GetQuery(_context.Set<TEntity>(), spec).ToListAsync();
+            return await ApplySpecifications(spec).ToListAsync();
+        }
+
+        public async Task<TEntity?> GetAsync(ISpecifications<TKey, TEntity> spec)
+        {
+            return await ApplySpecifications(spec) .FirstOrDefaultAsync();
+        }
+
+        public async Task<int> CountAsync(ISpecifications<TKey, TEntity> spec)
+        {
+            return await ApplySpecifications(spec).CountAsync();
+        }
+
+        private IQueryable<TEntity> ApplySpecifications(ISpecifications<TKey,TEntity> spec)
+        {
+           return SpecificationsEvaluator.GetQuery(_context.Set<TEntity>(),spec);
+        }
+
+       
     }
 }

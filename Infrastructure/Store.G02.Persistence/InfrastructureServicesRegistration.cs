@@ -1,0 +1,53 @@
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using StackExchange.Redis;
+using Store.G02.Domain.Contracts;
+using Store.G02.Persistence.Data.Contexts;
+using Store.G02.Persistence.Identity.Contexts;
+using Store.G02.Persistence.Repositories;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Store.G02.Persistence
+{
+    public static class InfrastructureServicesRegistration
+    {
+        public static IServiceCollection AddInfrastructureServices(this IServiceCollection services , IConfiguration configuration)
+        {
+            services.AddDbContext<StoreDbContext>(options =>
+            {
+                //appsettings
+                options.UseSqlServer(configuration.GetConnectionString("DefaultConnection"));
+
+            });
+
+            services.AddDbContext<IdentityStoreDbContext>(options =>
+            {
+                //appsettings
+                options.UseSqlServer(configuration.GetConnectionString("IdentityConnection"));
+
+            });
+
+            //Allow DI for Database_Initializer
+            services.AddScoped<IDbInitializer, DbInitializer>();
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
+            services.AddScoped<IBasketRepository, BasketRepository>();
+            services.AddScoped<ICacheRepository, CacheRepository>();
+
+
+            //Connect Redis for In-Memory DataBase
+            //Allow DI For MultiplexerConnection
+            services.AddSingleton<IConnectionMultiplexer>((serviceProvider) =>
+                ConnectionMultiplexer.Connect(configuration.GetConnectionString("RedisConnection"))
+            );
+
+            return services;
+
+        }
+    }
+}
