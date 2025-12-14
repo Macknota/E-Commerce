@@ -93,7 +93,6 @@ The solution implements **Clean Architecture (Onion Architecture)** to ensure se
 
 ## 👤 Author
 
-**Adel** * [LinkedIn]([Your_LinkedIn_URL](https://www.linkedin.com/in/adel-magdy-net/))
-
+**Adel** * [LinkedIn](https://www.linkedin.com/in/adel-magdy-net/)
 ---
 *This project is part of my portfolio to demonstrate my skills in .NET Backend Development.*
